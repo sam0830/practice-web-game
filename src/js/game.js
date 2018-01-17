@@ -1,4 +1,5 @@
-var StageScene = require('./scene/stage')
+var StageScene = require('./scene/stage');
+var ImageLoader = require('./asset_loader/image');
 
 var Game = function(canvas) {
     this.ctx = canvas.getContext('2d'); // Canvas への描画はctxプロパティを通して行う
@@ -13,6 +14,9 @@ var Game = function(canvas) {
 
     this.addScene("stage", new StageScene(this)); // シーンを追加
     this.changeScene("stage"); // 最初のシーンに切り替え
+
+    this.image_loader = new ImageLoader();
+    this.image_loader.loadImage("chara", '../image/chara.png');
 };
 
 Game.prototype.startRun = function() {

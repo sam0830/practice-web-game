@@ -1,5 +1,47 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var StageScene = require('./scene/stage')
+var ImageLoader = function() {
+    this.images = {};
+
+    this.loading_image_num = 0;
+    this.loaded_image_num = 0;
+};
+
+ImageLoader.prototype.loadImage = function(name, path) {
+    var self = this;
+
+    self.loading_image_num++;
+
+    // loadImage終了
+    var onload_function = function() {
+        self.loaded_image_num++;
+    };
+
+    var image = new Image();
+    image.src = path;
+    image.onload = onload_function;
+    this.images[name] = image;
+};
+
+// 画像が全て読み込まれたかどうか
+ImageLoader.prototype.isAllLoaded = function () {
+    return this.loaded_image_num > 0 && this.loaded_image_num === this.loading_image_num;
+};
+
+// 画像データの取得
+ImageLoader.prototype.getImage = function(name) {
+    return this.images[name];
+};
+
+// 画像データをメモリから解放
+ImageLoader.prototype.remove = function(name) {
+    delete this.images[name];
+};
+
+module.exports = ImageLoader;
+
+},{}],2:[function(require,module,exports){
+var StageScene = require('./scene/stage');
+var ImageLoader = require('./asset_loader/image');
 
 var Game = function(canvas) {
     this.ctx = canvas.getContext('2d'); // Canvas への描画はctxプロパティを通して行う
@@ -14,6 +56,9 @@ var Game = function(canvas) {
 
     this.addScene("stage", new StageScene(this)); // シーンを追加
     this.changeScene("stage"); // 最初のシーンに切り替え
+
+    this.image_loader = new ImageLoader();
+    this.image_loader.loadImage("chara", '../image/chara.png');
 };
 
 Game.prototype.startRun = function() {
@@ -58,16 +103,18 @@ Game.prototype.changePrevScene = function() {
 };
 module.exports = Game;
 
-},{"./scene/stage":4}],2:[function(require,module,exports){
+},{"./asset_loader/image":1,"./scene/stage":5}],3:[function(require,module,exports){
 var Game = require('./game');
 var mainCanvas = document.getElementById('mainCanvas');
 var game = new Game(mainCanvas);
 game.startRun();
 
-},{"./game":1}],3:[function(require,module,exports){
+},{"./game":2}],4:[function(require,module,exports){
 var Chara = function(scene) {
     this.scene = scene;
-    this.game = game;
+    this.game = scene.game;
+
+
 
     this._id = "chara";
 
@@ -89,9 +136,9 @@ Chara.prototype.update = function() {
 
 // 描画
 Chara.prototype.draw = function() {
-    var image = this.core.image_loader.getImage(this.spriteName());
+    var image = this.game.image_loader.getImage(this.spriteName());
 
-    var ctx = this.core.ctx;
+    var ctx = this.game.ctx;
 
     ctx.save();
 
@@ -101,7 +148,7 @@ Chara.prototype.draw = function() {
     var sprite_width = this.spriteWidth();
     var sprite_height = this.spriteHeight();
 
-    ctx.drawimage(image,
+    ctx.drawImage(image,
         // sprite position
         sprite_width * this.spriteIndexX(), sprite_height * this.spriteIndexY(),
         // sprite size to get
@@ -121,22 +168,22 @@ Chara.prototype.spriteName = function() {
 
 Chara.prototype.spriteIndexX = function() {
     return 0;
-}
+};
 
 Chara.prototype.spriteIndexY = function() {
     return 0;
-}
+};
 
 Chara.prototype.spriteWidth = function() {
     return 64;
-}
+};
 
 Chara.prototype.spriteHeight = function() {
     return 64;
-}
+};
 module.exports = Chara;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var Chara = require('../object/chara');
 var StageScene = function(game) {
     this.game = game;
@@ -179,4 +226,4 @@ StageScene.prototype.drawObjects = function() {
 }
 module.exports = StageScene;
 
-},{"../object/chara":3}]},{},[2]);
+},{"../object/chara":4}]},{},[3]);

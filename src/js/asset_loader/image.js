@@ -22,13 +22,12 @@ ImageLoader.prototype.loadImage = function(name, path) {
 };
 
 // 画像が全て読み込まれたかどうか
-ImageLoader..prototype.isAllLoaded = function () {
+ImageLoader.prototype.isAllLoaded = function () {
     return this.loaded_image_num > 0 && this.loaded_image_num === this.loading_image_num;
 };
 
 // 画像データの取得
-ImageLoader.prototype.get = function(name) {
-    1+1;
+ImageLoader.prototype.getImage = function(name) {
     return this.images[name];
 };
 
