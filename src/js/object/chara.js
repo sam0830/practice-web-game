@@ -22,6 +22,49 @@ Chara.prototype.update = function() {
 
 // 描画
 Chara.prototype.draw = function() {
+    var image = this.core.image_loader.getImage(this.spriteName());
 
+    var ctx = this.core.ctx;
+
+    ctx.save();
+
+    // set position
+    ctx.translate(this.x, this.y);
+
+    var sprite_width = this.spriteWidth();
+    var sprite_height = this.spriteHeight();
+
+    ctx.drawimage(image,
+        // sprite position
+        sprite_width * this.spriteIndexX(), sprite_height * this.spriteIndexY(),
+        // sprite size to get
+        sprite_width, sprite_height,
+        // adjust left x, up y because of x and y indicate sprite center.
+        -sprite_width/2, -sprite_height/2,
+        // sprite size to show
+        sprite_width, sprite_height
+    );
+
+    ctx.restore();
 };
+
+Chara.prototype.spriteName = function() {
+    return "chara";
+};
+
+Chara.prototype.spriteIndexX = function() {
+    return 0;
+}
+
+Chara.prototype.spriteIndexY = function() {
+    return 0;
+}
+
+Chara.prototype.spriteWidth = function() {
+    return 64;
+}
+
+Chara.prototype.spriteHeight = function() {
+    return 64;
+}
 module.exports = Chara;

@@ -58,29 +58,125 @@ Game.prototype.changePrevScene = function() {
 };
 module.exports = Game;
 
-},{"./scene/stage":3}],2:[function(require,module,exports){
+},{"./scene/stage":4}],2:[function(require,module,exports){
 var Game = require('./game');
 var mainCanvas = document.getElementById('mainCanvas');
 var game = new Game(mainCanvas);
 game.startRun();
 
 },{"./game":1}],3:[function(require,module,exports){
-var StageScene = function(game) {
+var Chara = function(scene) {
+    this.scene = scene;
     this.game = game;
+
+    this._id = "chara";
+
+    this.x = 0;
+    this.y = 0;
 
     // 経過フレーム数
     this.frame_count = 0;
+};
+
+Chara.prototype.id = function() {
+    return this._id;
+};
+
+// 更新
+Chara.prototype.update = function() {
+    this.frame_count++;
+};
+
+// 描画
+Chara.prototype.draw = function() {
+    var image = this.core.image_loader.getImage(this.spriteName());
+
+    var ctx = this.core.ctx;
+
+    ctx.save();
+
+    // set position
+    ctx.translate(this.x, this.y);
+
+    var sprite_width = this.spriteWidth();
+    var sprite_height = this.spriteHeight();
+
+    ctx.drawimage(image,
+        // sprite position
+        sprite_width * this.spriteIndexX(), sprite_height * this.spriteIndexY(),
+        // sprite size to get
+        sprite_width, sprite_height,
+        // adjust left x, up y because of x and y indicate sprite center.
+        -sprite_width/2, -sprite_height/2,
+        // sprite size to show
+        sprite_width, sprite_height
+    );
+
+    ctx.restore();
+};
+
+Chara.prototype.spriteName = function() {
+    return "chara";
+};
+
+Chara.prototype.spriteIndexX = function() {
+    return 0;
+}
+
+Chara.prototype.spriteIndexY = function() {
+    return 0;
+}
+
+Chara.prototype.spriteWidth = function() {
+    return 64;
+}
+
+Chara.prototype.spriteHeight = function() {
+    return 64;
+}
+module.exports = Chara;
+
+},{}],4:[function(require,module,exports){
+var Chara = require('../object/chara');
+var StageScene = function(game) {
+    this.game = game;
+
+    // シーン上のオブジェクト一覧
+    this.objects = {};
+
+    // 経過フレーム数
+    this.frame_count = 0;
+
+    this.addObject(new Chara(this));
+}
+
+StageScene.prototype.addObject = function(object) {
+    this.objects[object.id()] = object;
 }
 
 // 更新
 StageScene.prototype.update = function() {
     this.frame_count++;
+
+    this.updateObjects();
 };
+
+StageScene.prototype.updateObjects = function() {
+    for(var id in this.objects) {
+        this.objects[id].update();
+    }
+}
 
 // 描画
 StageScene.prototype.draw = function() {
-
+    this.drawObjects();
 };
+
+StageScene.prototype.drawObjects = function() {
+    for(var id in this.objects) {
+        this.objects[id].draw();
+    }
+}
 module.exports = StageScene;
 
-},{}]},{},[2]);
+},{"../object/chara":3}]},{},[2]);
