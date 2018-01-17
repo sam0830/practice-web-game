@@ -5,11 +5,11 @@ var source_file = './src/js/main.js';
 // 出力ディレクトリ
 var dist_dir = './public/js/';
 // アプリファイル
-var appjs = './main.js'
+var appjs = 'main.js'
 
 // gulp watchで開くhtml
-var html_dir = './public';
-var html = 'index.html';
+var html_dir = "public";
+var html = "index.html";
 
 var browserify = require('browserify');
 var gulp = require('gulp');
@@ -25,11 +25,11 @@ var browserSync = require('browser-sync').create();
 gulp.task('browserify', function() {
     return browserify(source_file)
         .bundle()
-        .on('error', function() {
+        .on('error', function(err) { // エラーだった時の処理
                 // デスクトップ通知
                 var error_handle = notify.onError('<%= error.message %>');
                 error_handle(err);
-                this.emmit('end');
+                this.emit('end');
         })
         .pipe(source(appjs))
         .pipe(gulp.dest(dist_dir));
