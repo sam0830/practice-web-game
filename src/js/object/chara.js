@@ -1,6 +1,8 @@
 var Chara = function(scene) {
     this.scene = scene;
-    this.game = game;
+    this.game = scene.game;
+
+
 
     this._id = "chara";
 
@@ -22,9 +24,9 @@ Chara.prototype.update = function() {
 
 // 描画
 Chara.prototype.draw = function() {
-    var image = this.core.image_loader.getImage(this.spriteName());
+    var image = this.game.image_loader.getImage(this.spriteName());
 
-    var ctx = this.core.ctx;
+    var ctx = this.game.ctx;
 
     ctx.save();
 
@@ -34,7 +36,7 @@ Chara.prototype.draw = function() {
     var sprite_width = this.spriteWidth();
     var sprite_height = this.spriteHeight();
 
-    ctx.drawimage(image,
+    ctx.drawImage(image,
         // sprite position
         sprite_width * this.spriteIndexX(), sprite_height * this.spriteIndexY(),
         // sprite size to get
@@ -54,17 +56,17 @@ Chara.prototype.spriteName = function() {
 
 Chara.prototype.spriteIndexX = function() {
     return 0;
-}
+};
 
 Chara.prototype.spriteIndexY = function() {
     return 0;
-}
+};
 
 Chara.prototype.spriteWidth = function() {
     return 64;
-}
+};
 
 Chara.prototype.spriteHeight = function() {
     return 64;
-}
+};
 module.exports = Chara;
