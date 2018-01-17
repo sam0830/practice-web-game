@@ -1,0 +1,19 @@
+{
+  "name": "practice-web-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sam0830/practice-web-game.git"
+  },
+  "author": "Takahiro Wakano",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sam0830/practice-web-game/issues"
+  },
+  "homepage": "https://github.com/sam0830/practice-web-game#readme"
+}
