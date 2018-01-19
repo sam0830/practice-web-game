@@ -30,6 +30,7 @@ Game.prototype.startRun = function() {
 };
 
 Game.prototype.run = function() {
+    this.ctx.clearRect(0, 0, this.width, this.height);
     this.input.handleGamePad();
     // ゲームの処理
     this.toNextSceneIfExists(); // 次のシーンが前フレームにて予約されていればそちらに切り替え
