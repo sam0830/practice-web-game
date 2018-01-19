@@ -1,3 +1,5 @@
+var Util = require('../util');
+
 var id = 0;
 
 var ObjectBase = function(scene) {
@@ -8,6 +10,9 @@ var ObjectBase = function(scene) {
 
     this.x = 0;
     this.y = 0;
+
+    this.speed = 0;
+    this.theta = 0;
 
     // 経過フレーム数
     this.frame_count = 0;
@@ -31,6 +36,32 @@ ObjectBase.prototype.update = function() {
             this.current_sprite_index = 0;
         }
     }
+
+    this.move();
+};
+
+ObjectBase.prototype.move = function() {
+    if(this.speed === 0) {
+        return;
+    }
+
+    var x = Util.calcMoveX(this.speed, this.theta);
+    var y = Util.calcMoveY(this.speed, this.theta);
+    this.x += x;
+    this.y += y;
+};
+
+ObjectBase.prototype.setMove = function(speed, theta) {
+    this.speed = speed;
+    this.theta = theta;
+};
+
+ObjectBase.prototype.setAimTo = function (x, y) {
+    var ax = x - this.x;
+    var ay = y - this.y;
+
+    var theta = Util.radianToTheta(Math.atan2(ay, ax));
+    return theta;
 };
 
 // 描画
