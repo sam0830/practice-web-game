@@ -42,7 +42,7 @@ Chara.prototype.draw = function() {
         // sprite size to get
         sprite_width, sprite_height,
         // adjust left x, up y because of x and y indicate sprite center.
-        -sprite_width/2, -sprite_height/2,
+        0, 0, // -sprite_width/2, -sprite_height/2,
         // sprite size to show
         sprite_width, sprite_height
     );
@@ -63,10 +63,10 @@ Chara.prototype.spriteIndexY = function() {
 };
 
 Chara.prototype.spriteWidth = function() {
-    return 64;
+    return 210;
 };
 
 Chara.prototype.spriteHeight = function() {
-    return 64;
+    return 391;
 };
 module.exports = Chara;
