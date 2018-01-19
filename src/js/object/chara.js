@@ -1,76 +1,24 @@
+var Util = require('../util');
+var ObjectBase = require('./base');
+var Constant = require('../constant');
+var Shot = require('./shot');
+
 var Chara = function(scene) {
-    this.scene = scene;
-    this.game = scene.game;
-
-
-
-    this._id = "chara";
-
-    this.x = 0;
-    this.y = 0;
-
-    // 経過フレーム数
-    this.frame_count = 0;
-
-    // 現在表示するスプライト
-    this.current_sprite_index = 0;
+    ObjectBase.apply(this, arguments);
 };
+Util.inherit(Chara, ObjectBase);
 
-Chara.prototype.id = function() {
-    return this._id;
-};
-
-// 更新
 Chara.prototype.update = function() {
-    this.frame_count++;
+    ObjectBase.prototype.update.apply(this, arguments); // 親クラスの run を実行
 
-    // animation sprite
-    if(this.frame_count % this.spriteAnimationSpan() === 0) {
-        this.current_sprite_index++;
-        if(this.current_sprite_index >= this.spriteIndices().length) {
-            this.current_sprite_index = 0;
-        }
+    // Zが押されていればショット生成
+    if(this.game.input.isKeyDown(Constant.BUTTON_Z)) {
+        this.scene.addObject(new Shot(this, this.x, this.y));
     }
-};
-
-// 描画
-Chara.prototype.draw = function() {
-    var image = this.game.image_loader.getImage(this.spriteName());
-
-    var ctx = this.game.ctx;
-
-    ctx.save();
-
-    // set position
-    ctx.translate(this.x, this.y);
-
-    var sprite_width = this.spriteWidth();
-    var sprite_height = this.spriteHeight();
-
-    ctx.drawImage(image,
-        // sprite position
-        sprite_width * this.spriteIndexX(), sprite_height * this.spriteIndexY(),
-        // sprite size to get
-        sprite_width, sprite_height,
-        // adjust left x, up y because of x and y indicate sprite center.
-        -sprite_width/2, -sprite_height/2,
-        // sprite size to show
-        sprite_width, sprite_height
-    );
-
-    ctx.restore();
 };
 
 Chara.prototype.spriteName = function() {
     return "chara";
-};
-
-Chara.prototype.spriteIndexX = function() {
-    return this.spriteIndices()[this.current_sprite_index].x;
-};
-
-Chara.prototype.spriteIndexY = function() {
-    return this.spriteIndices()[this.current_sprite_index].y;
 };
 
 Chara.prototype.spriteAnimationSpan = function() {

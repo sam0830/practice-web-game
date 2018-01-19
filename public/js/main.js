@@ -76,6 +76,8 @@ var Game = function(canvas) {
 
     this.image_loader = new ImageLoader();
     this.image_loader.loadImage("chara", '../image/chara.png');
+    this.image_loader.loadImage("shot", '../image/chara.png');
+    this.image_loader.loadImage("enemy", '../image/chara.png');
 };
 
 Game.prototype.startRun = function() {
@@ -124,7 +126,7 @@ Game.prototype.changePrevScene = function() {
 };
 module.exports = Game;
 
-},{"./asset_loader/image":1,"./input":4,"./scene/stage":7}],4:[function(require,module,exports){
+},{"./asset_loader/image":1,"./input":4,"./scene/stage":11}],4:[function(require,module,exports){
 var Constant = require('./constant');
 
 var Input = function() {
@@ -222,19 +224,38 @@ Input.prototype.saveBeforeKey = function() {
 module.exports = Input;
 
 },{"./constant":2}],5:[function(require,module,exports){
+var Enemy = require('../object/enemy');
+var Master = function(scene) {
+    this.scene = scene;
+
+    this.frame_count = 0;
+};
+
+Master.prototype.update = function () {
+    this.frame_count++;
+
+    if(this.frame_count % 100 === 0) {
+        var x = Math.floor(Math.random() * this.scene.game.width); // x軸はランダム
+        var y = 0; // 画面上部から
+        this.scene.addObject(new Enemy(this.scene, x, y));
+    }
+};
+module.exports = Master;
+
+},{"../object/enemy":9}],6:[function(require,module,exports){
 var Game = require('./game');
 var mainCanvas = document.getElementById('mainCanvas');
 var game = new Game(mainCanvas);
 game.startRun();
 
-},{"./game":3}],6:[function(require,module,exports){
-var Chara = function(scene) {
+},{"./game":3}],7:[function(require,module,exports){
+var id = 0;
+
+var ObjectBase = function(scene) {
     this.scene = scene;
     this.game = scene.game;
 
-
-
-    this._id = "chara";
+    this._id = ++id;
 
     this.x = 0;
     this.y = 0;
@@ -246,12 +267,12 @@ var Chara = function(scene) {
     this.current_sprite_index = 0;
 };
 
-Chara.prototype.id = function() {
+ObjectBase.prototype.id = function() {
     return this._id;
 };
 
 // 更新
-Chara.prototype.update = function() {
+ObjectBase.prototype.update = function() {
     this.frame_count++;
 
     // animation sprite
@@ -264,7 +285,7 @@ Chara.prototype.update = function() {
 };
 
 // 描画
-Chara.prototype.draw = function() {
+ObjectBase.prototype.draw = function() {
     var image = this.game.image_loader.getImage(this.spriteName());
 
     var ctx = this.game.ctx;
@@ -291,16 +312,57 @@ Chara.prototype.draw = function() {
     ctx.restore();
 };
 
-Chara.prototype.spriteName = function() {
-    return "chara";
+ObjectBase.prototype.spriteName = function() {
+    throw new Error("must be implemented");
 };
 
-Chara.prototype.spriteIndexX = function() {
+ObjectBase.prototype.spriteIndexX = function() {
     return this.spriteIndices()[this.current_sprite_index].x;
 };
 
-Chara.prototype.spriteIndexY = function() {
+ObjectBase.prototype.spriteIndexY = function() {
     return this.spriteIndices()[this.current_sprite_index].y;
+};
+
+ObjectBase.prototype.spriteAnimationSpan = function() {
+    throw new Error("must be implemented");
+};
+
+ObjectBase.prototype.spriteIndices = function() {
+    throw new Error("must be implemented");
+};
+
+ObjectBase.prototype.spriteWidth = function() {
+    throw new Error("must be implemented");
+};
+
+ObjectBase.prototype.spriteHeight = function() {
+    throw new Error("must be implemented");
+};
+module.exports = ObjectBase;
+
+},{}],8:[function(require,module,exports){
+var Util = require('../util');
+var ObjectBase = require('./base');
+var Constant = require('../constant');
+var Shot = require('./shot');
+
+var Chara = function(scene) {
+    ObjectBase.apply(this, arguments);
+};
+Util.inherit(Chara, ObjectBase);
+
+Chara.prototype.update = function() {
+    ObjectBase.prototype.update.apply(this, arguments); // 親クラスの run を実行
+
+    // Zが押されていればショット生成
+    if(this.game.input.isKeyDown(Constant.BUTTON_Z)) {
+        this.scene.addObject(new Shot(this, this.x, this.y));
+    }
+};
+
+Chara.prototype.spriteName = function() {
+    return "chara";
 };
 
 Chara.prototype.spriteAnimationSpan = function() {
@@ -320,8 +382,76 @@ Chara.prototype.spriteHeight = function() {
 };
 module.exports = Chara;
 
-},{}],7:[function(require,module,exports){
+},{"../constant":2,"../util":12,"./base":7,"./shot":10}],9:[function(require,module,exports){
+var Util = require('../util');
+var ObjectBase = require('./base');
+
+var Enemy = function(scene, x, y) {
+    ObjectBase.apply(this, arguments);
+
+    this.x = x;
+    this.y = y;
+};
+Util.inherit(Enemy, ObjectBase);
+
+Enemy.prototype.spriteName = function () {
+    return "enemy";
+};
+
+Enemy.prototype.spriteAnimationSpan = function () {
+    return 0;
+};
+
+Enemy.prototype.spriteIndices = function () {
+    return [{x: 0, y: 0}, {x: 0, y: 1}, {x: 0, y: 2}];
+};
+
+Enemy.prototype.spriteWidth = function() {
+    return 105;
+};
+
+Enemy.prototype.spriteHeight = function() {
+    return 200;
+};
+module.exports = Enemy;
+
+},{"../util":12,"./base":7}],10:[function(require,module,exports){
+var Util = require('../util');
+var ObjectBase = require('./base');
+
+var Shot = function(scene, x, y) {
+    ObjectBase.apply(this, arguments);
+
+    this.x = x;
+    this.y = y;
+};
+
+Util.inherit(Shot, ObjectBase);
+
+Shot.prototype.spriteName = function() {
+    return "shot";
+};
+
+Shot.prototype.spriteAnimationSpan = function() {
+    return 0;
+};
+
+Shot.prototype.spriteIndices = function() {
+    return [{x: 0, y: 0}];
+};
+
+Shot.prototype.spriteWidth = function() {
+    return 210;
+};
+
+Shot.prototype.spriteHeight = function() {
+    return 391;
+};
+module.exports = Shot;
+
+},{"../util":12,"./base":7}],11:[function(require,module,exports){
 var Chara = require('../object/chara');
+var Master = require('../logic/master');
 var StageScene = function(game) {
     this.game = game;
 
@@ -332,6 +462,8 @@ var StageScene = function(game) {
     this.frame_count = 0;
 
     this.addObject(new Chara(this));
+
+    this.master = new Master(this);
 }
 
 StageScene.prototype.addObject = function(object) {
@@ -343,6 +475,8 @@ StageScene.prototype.update = function() {
     this.frame_count++;
 
     this.updateObjects();
+
+    this.master.update(); // 敵の出現
 };
 
 StageScene.prototype.updateObjects = function() {
@@ -363,4 +497,24 @@ StageScene.prototype.drawObjects = function() {
 }
 module.exports = StageScene;
 
-},{"../object/chara":6}]},{},[5]);
+},{"../logic/master":5,"../object/chara":8}],12:[function(require,module,exports){
+'use strict';
+
+var Util = function() {};
+
+Util.inherit = function(child, parent) {
+    var getPrototype = function(p) {
+        if(Object.create) {
+            return Object.create(p);
+        }
+
+        var F = function() {};
+        F.prototype = p;
+        return new F();
+    };
+    child.prototype = getPrototype(parent.prototype);
+    child.prototype.constructor = child;
+};
+module.exports = Util;
+
+},{}]},{},[6]);

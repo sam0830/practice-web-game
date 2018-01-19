@@ -1,4 +1,5 @@
 var Chara = require('../object/chara');
+var Master = require('../logic/master');
 var StageScene = function(game) {
     this.game = game;
 
@@ -9,6 +10,8 @@ var StageScene = function(game) {
     this.frame_count = 0;
 
     this.addObject(new Chara(this));
+
+    this.master = new Master(this);
 }
 
 StageScene.prototype.addObject = function(object) {
@@ -20,6 +23,8 @@ StageScene.prototype.update = function() {
     this.frame_count++;
 
     this.updateObjects();
+
+    this.master.update(); // 敵の出現
 };
 
 StageScene.prototype.updateObjects = function() {
