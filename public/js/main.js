@@ -42,13 +42,13 @@ module.exports = ImageLoader;
 },{}],2:[function(require,module,exports){
 var Constant = {
     BUTTON_SHIFT: 0x01, // 0b00000001
-    BUTTON_SPACE: 0x20, // 0b00100000
-    BUTTON_LEFT: 0x25, // 0b00100101
-    BUTTON_UP: 0x26, // 0b00100110
-    BUTTON_RIGHT: 0x27, // 0b00100111
-    BUTTON_DOWN: 0x28, // 0b00101000
-    BUTTON_Z: 0x5A, // 0b1011010
-    BUTTON_X: 0x58 // 0b1011000
+    BUTTON_SPACE: 0x02, // 0b00000010
+    BUTTON_LEFT: 0x04,  // 0b00000100
+    BUTTON_UP: 0x08,    // 0b00001000
+    BUTTON_RIGHT: 0x10, // 0b00010000
+    BUTTON_DOWN: 0x20,  // 0b00100000
+    BUTTON_Z: 0x40,     // 0b01000000
+    BUTTON_X: 0x80      // 0b10000000
 };
 module.exports = Constant;
 
@@ -85,6 +85,7 @@ Game.prototype.startRun = function() {
 };
 
 Game.prototype.run = function() {
+    this.ctx.clearRect(0, 0, this.width, this.height);
     this.input.handleGamePad();
     // ゲームの処理
     this.toNextSceneIfExists(); // 次のシーンが前フレームにて予約されていればそちらに切り替え
@@ -229,16 +230,17 @@ var Master = function(scene) {
     this.scene = scene;
 
     this.frame_count = 0;
+    this.scene.addObject(new Enemy(this.scene, 100, 100));
 };
 
 Master.prototype.update = function () {
     this.frame_count++;
 
-    if(this.frame_count % 100 === 0) {
-        var x = Math.floor(Math.random() * this.scene.game.width); // x軸はランダム
-        var y = 0; // 画面上部から
-        this.scene.addObject(new Enemy(this.scene, x, y));
-    }
+    // if(this.frame_count % 100 === 0) {
+    //     var x = Math.floor(Math.random() * this.scene.game.width); // x軸はランダム
+    //     var y = 0; // 画面上部から
+    //     this.scene.addObject(new Enemy(this.scene, x, y));
+    // }
 };
 module.exports = Master;
 
@@ -249,6 +251,8 @@ var game = new Game(mainCanvas);
 game.startRun();
 
 },{"./game":3}],7:[function(require,module,exports){
+var Util = require('../util');
+
 var id = 0;
 
 var ObjectBase = function(scene) {
@@ -259,6 +263,9 @@ var ObjectBase = function(scene) {
 
     this.x = 0;
     this.y = 0;
+
+    this.speed = 0;
+    this.theta = 0;
 
     // 経過フレーム数
     this.frame_count = 0;
@@ -282,6 +289,32 @@ ObjectBase.prototype.update = function() {
             this.current_sprite_index = 0;
         }
     }
+
+    this.move();
+};
+
+ObjectBase.prototype.move = function() {
+    if(this.speed === 0) {
+        return;
+    }
+
+    var x = Util.calcMoveX(this.speed, this.theta);
+    var y = Util.calcMoveY(this.speed, this.theta);
+    this.x += x;
+    this.y += y;
+};
+
+ObjectBase.prototype.setMove = function(speed, theta) {
+    this.speed = speed;
+    this.theta = theta;
+};
+
+ObjectBase.prototype.setAimTo = function (x, y) {
+    var ax = x - this.x;
+    var ay = y - this.y;
+
+    var theta = Util.radianToTheta(Math.atan2(ay, ax));
+    return theta;
 };
 
 // 描画
@@ -341,11 +374,18 @@ ObjectBase.prototype.spriteHeight = function() {
 };
 module.exports = ObjectBase;
 
-},{}],8:[function(require,module,exports){
+},{"../util":12}],8:[function(require,module,exports){
 var Util = require('../util');
 var ObjectBase = require('./base');
 var Constant = require('../constant');
 var Shot = require('./shot');
+
+// キャラの移動速度
+var SPEED = 2;
+
+// ショットの移動速度
+var SHOT_SPEED = 3;
+var SHOT_THETA = 270; // 画面前方
 
 var Chara = function(scene) {
     ObjectBase.apply(this, arguments);
@@ -353,11 +393,43 @@ var Chara = function(scene) {
 Util.inherit(Chara, ObjectBase);
 
 Chara.prototype.update = function() {
-    ObjectBase.prototype.update.apply(this, arguments); // 親クラスの run を実行
+    ObjectBase.prototype.update.apply(this, arguments); // 親クラスの update を実行
 
+    // 自機移動
+    if(this.game.input.isKeyDown(Constant.BUTTON_LEFT)) {
+        this.x -= SPEED;
+    }
+    if(this.game.input.isKeyDown(Constant.BUTTON_RIGHT)) {
+        this.x += SPEED;
+    }
+    if(this.game.input.isKeyDown(Constant.BUTTON_DOWN)) {
+        this.y += SPEED;
+    }
+    if(this.game.input.isKeyDown(Constant.BUTTON_UP)) {
+        this.y -= SPEED;
+    }
+    // 画面外に出させない
+    this.forbidOutOfStage();
     // Zが押されていればショット生成
     if(this.game.input.isKeyDown(Constant.BUTTON_Z)) {
-        this.scene.addObject(new Shot(this, this.x, this.y));
+        var shot = new Shot(this, this.x, this.y);
+        shot.setMove(SHOT_SPEED, SHOT_THETA);
+        this.scene.addObject(shot);
+    }
+};
+
+Chara.prototype.forbidOutOfStage = function() {
+    if(this.x < 0) {
+        this.x = 0;
+    }
+    if(this.x > this.game.width) {
+        this.x = this.game.width;
+    }
+    if(this.y < 0) {
+        this.y = 0;
+    }
+    if(this.y > this.game.height) {
+        this.y = this.game.height;1+1;
     }
 };
 
@@ -366,7 +438,7 @@ Chara.prototype.spriteName = function() {
 };
 
 Chara.prototype.spriteAnimationSpan = function() {
-    return 10;
+    return 0;
 };
 
 Chara.prototype.spriteIndices = function() {
@@ -374,11 +446,11 @@ Chara.prototype.spriteIndices = function() {
 };
 
 Chara.prototype.spriteWidth = function() {
-    return 105;
+    return 210;
 };
 
 Chara.prototype.spriteHeight = function() {
-    return 200;
+    return 391;
 };
 module.exports = Chara;
 
@@ -389,10 +461,22 @@ var ObjectBase = require('./base');
 var Enemy = function(scene, x, y) {
     ObjectBase.apply(this, arguments);
 
+    this.scene = scene;
+
     this.x = x;
     this.y = y;
+
+    this.speed = 3;
 };
 Util.inherit(Enemy, ObjectBase);
+
+Enemy.prototype.update = function () {
+    ObjectBase.prototype.update.apply(this, arguments); // 親クラスの update を実行
+
+    if(this.frame_count % 60 === 0) {
+        this. theta = this.setAimTo(this.scene.objects[1].x, this.scene.objects[1].y);
+    }
+};
 
 Enemy.prototype.spriteName = function () {
     return "enemy";
@@ -407,11 +491,11 @@ Enemy.prototype.spriteIndices = function () {
 };
 
 Enemy.prototype.spriteWidth = function() {
-    return 105;
+    return 210;
 };
 
 Enemy.prototype.spriteHeight = function() {
-    return 200;
+    return 391;
 };
 module.exports = Enemy;
 
@@ -514,6 +598,22 @@ Util.inherit = function(child, parent) {
     };
     child.prototype = getPrototype(parent.prototype);
     child.prototype.constructor = child;
+};
+
+Util.thetaToRadian = function(theta) {
+    return theta * Math.PI / 180;
+};
+
+Util.radianToTheta = function(radian) {
+    return (radian * 180 /Math.PI) | 0;
+};
+
+Util.calcMoveX = function(speed, theta) {
+    return speed * Math.cos(Util.thetaToRadian(theta));
+};
+
+Util.calcMoveY = function(speed, theta) {
+    return speed * Math.sin(Util.thetaToRadian(theta));
 };
 module.exports = Util;
 
