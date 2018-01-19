@@ -123,6 +123,9 @@ var Chara = function(scene) {
 
     // 経過フレーム数
     this.frame_count = 0;
+
+    // 現在表示するスプライト
+    this.current_sprite_index = 0;
 };
 
 Chara.prototype.id = function() {
@@ -132,6 +135,14 @@ Chara.prototype.id = function() {
 // 更新
 Chara.prototype.update = function() {
     this.frame_count++;
+
+    // animation sprite
+    if(this.frame_count % this.spriteAnimationSpan() === 0) {
+        this.current_sprite_index++;
+        if(this.current_sprite_index >= this.spriteIndices().length) {
+            this.current_sprite_index = 0;
+        }
+    }
 };
 
 // 描画
@@ -167,19 +178,27 @@ Chara.prototype.spriteName = function() {
 };
 
 Chara.prototype.spriteIndexX = function() {
-    return 0;
+    return this.spriteIndices()[this.current_sprite_index].x;
 };
 
 Chara.prototype.spriteIndexY = function() {
-    return 0;
+    return this.spriteIndices()[this.current_sprite_index].y;
+};
+
+Chara.prototype.spriteAnimationSpan = function() {
+    return 10;
+};
+
+Chara.prototype.spriteIndices = function() {
+    return [{x: 0, y: 0}, {x: 1, y: 0}];
 };
 
 Chara.prototype.spriteWidth = function() {
-    return 64;
+    return 105;
 };
 
 Chara.prototype.spriteHeight = function() {
-    return 64;
+    return 200;
 };
 module.exports = Chara;
 
