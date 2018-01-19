@@ -1,7 +1,11 @@
 var StageScene = require('./scene/stage');
 var ImageLoader = require('./asset_loader/image');
+var Input = require('./input');
 
 var Game = function(canvas) {
+    this.input = new Input();
+    this.input.bindKey();
+
     this.ctx = canvas.getContext('2d'); // Canvas への描画はctxプロパティを通して行う
     // 画面サイズ
     this.height = canvas.height;
@@ -31,6 +35,9 @@ Game.prototype.run = function() {
     this.scene[this.current_scene].draw();
 
     this.request_id = requestAnimationFrame(this.run.bind(this));
+
+    // 押下されたキーを保存しておく
+    this.input.saveBeforeKey();
 };
 
 Game.prototype.toNextSceneIfExists = function() {
