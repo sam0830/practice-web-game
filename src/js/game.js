@@ -22,6 +22,7 @@ var Game = function(canvas) {
     this.image_loader = new ImageLoader();
     this.image_loader.loadImage("chara", '../image/chara.png');
     this.image_loader.loadImage("shot", '../image/chara.png');
+    this.image_loader.loadImage("enemy", '../image/chara.png');
 };
 
 Game.prototype.startRun = function() {
