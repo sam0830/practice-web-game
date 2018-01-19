@@ -28,6 +28,7 @@ Game.prototype.startRun = function() {
 };
 
 Game.prototype.run = function() {
+    this.input.handleGamePad();
     // ゲームの処理
     this.toNextSceneIfExists(); // 次のシーンが前フレームにて予約されていればそちらに切り替え
 

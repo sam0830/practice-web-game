@@ -8,6 +8,22 @@ var Input = function() {
     this.before_keyflag = 0x0;
 };
 
+Input.prototype.handleGamePad = function() {
+    var pads = navigator.getGamepads();
+    var pad = pads[0]; // 1Pコン
+
+    if(!pad) { return;}
+
+    this.keyflag = 0x00;
+    this.keyflag |= pad.buttons[0].pressed ? Constant.BUTTON_Z:0x00;
+    this.keyflag |= pad.buttons[1].pressed ? Constant.BUTTON_X:0x00;
+
+    this.keyflag |= pad.axes[1] < -0.5 ? Constant.Button_UP:0x00;
+    this.keyflag |= pad.axes[1] > 0.5 ? Constant.BUTTON_DOWN:0x00;
+    this.keyflag |= pad.axes[0] < -0.5 ? Constant.BUTTON_LEFT:0x00;
+    this.keyflag |= pad.axes[0] > 0.5 ? Constant.BUTTON_RIGHT:0x00;
+};
+
 // キー押下
 Input.prototype.handleKeyDown = function(e) {
     this.keyflag |= this._keyCodeToBitCode(e.keyCode);
@@ -16,7 +32,7 @@ Input.prototype.handleKeyDown = function(e) {
 
 // キー押下解除
 Input.prototype.handleKeyUp = function(e) {
-    this.keyflag &= ~this._keyCodeToBitCode(e.keyCode);console.log(e);
+    this.keyflag &= ~this._keyCodeToBitCode(e.keyCode);
 };
 
 // 指定のキーが押下状態か確認する
