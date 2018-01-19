@@ -40,10 +40,27 @@ ImageLoader.prototype.remove = function(name) {
 module.exports = ImageLoader;
 
 },{}],2:[function(require,module,exports){
+var Constant = {
+    BUTTON_SHIFT: 0x01, // 0b00000001
+    BUTTON_SPACE: 0x20, // 0b00100000
+    BUTTON_LEFT: 0x25, // 0b00100101
+    BUTTON_UP: 0x26, // 0b00100110
+    BUTTON_RIGHT: 0x27, // 0b00100111
+    BUTTON_DOWN: 0x28, // 0b00101000
+    BUTTON_Z: 0x5A, // 0b1011010
+    BUTTON_X: 0x58 // 0b1011000
+};
+module.exports = Constant;
+
+},{}],3:[function(require,module,exports){
 var StageScene = require('./scene/stage');
 var ImageLoader = require('./asset_loader/image');
+var Input = require('./input');
 
 var Game = function(canvas) {
+    this.input = new Input();
+    this.input.bindKey();
+
     this.ctx = canvas.getContext('2d'); // Canvas への描画はctxプロパティを通して行う
     // 画面サイズ
     this.height = canvas.height;
@@ -66,6 +83,7 @@ Game.prototype.startRun = function() {
 };
 
 Game.prototype.run = function() {
+    this.input.handleGamePad();
     // ゲームの処理
     this.toNextSceneIfExists(); // 次のシーンが前フレームにて予約されていればそちらに切り替え
 
@@ -73,6 +91,9 @@ Game.prototype.run = function() {
     this.scene[this.current_scene].draw();
 
     this.request_id = requestAnimationFrame(this.run.bind(this));
+
+    // 押下されたキーを保存しておく
+    this.input.saveBeforeKey();
 };
 
 Game.prototype.toNextSceneIfExists = function() {
@@ -103,13 +124,110 @@ Game.prototype.changePrevScene = function() {
 };
 module.exports = Game;
 
-},{"./asset_loader/image":1,"./scene/stage":5}],3:[function(require,module,exports){
+},{"./asset_loader/image":1,"./input":4,"./scene/stage":7}],4:[function(require,module,exports){
+var Constant = require('./constant');
+
+var Input = function() {
+    // キー押下フラグ
+    this.keyflag = 0x0;
+
+    // 1つ前のフレームで押されたキー
+    this.before_keyflag = 0x0;
+};
+
+Input.prototype.handleGamePad = function() {
+    var pads = navigator.getGamepads();
+    var pad = pads[0]; // 1Pコン
+
+    if(!pad) { return;}
+
+    this.keyflag = 0x00;
+    this.keyflag |= pad.buttons[0].pressed ? Constant.BUTTON_Z:0x00;
+    this.keyflag |= pad.buttons[1].pressed ? Constant.BUTTON_X:0x00;
+
+    this.keyflag |= pad.axes[1] < -0.5 ? Constant.Button_UP:0x00;
+    this.keyflag |= pad.axes[1] > 0.5 ? Constant.BUTTON_DOWN:0x00;
+    this.keyflag |= pad.axes[0] < -0.5 ? Constant.BUTTON_LEFT:0x00;
+    this.keyflag |= pad.axes[0] > 0.5 ? Constant.BUTTON_RIGHT:0x00;
+};
+
+// キー押下
+Input.prototype.handleKeyDown = function(e) {
+    this.keyflag |= this._keyCodeToBitCode(e.keyCode);
+    e.preventDefault();
+};
+
+// キー押下解除
+Input.prototype.handleKeyUp = function(e) {
+    this.keyflag &= ~this._keyCodeToBitCode(e.keyCode);
+};
+
+// 指定のキーが押下状態か確認する
+Input.prototype.isKeyDown = function(flag) {
+    return this.keyflag & flag;
+};
+
+// 指定のキーが押下されたか確認する
+Input.prototype.isKeyPush = function(flag) {
+    // 1フレーム前に押下されておらず、現フレームで押下されているなら true
+    return !(this.before_keyflag & flag) && this.keyflag & flag;
+};
+
+// キーコードをBitに変換
+Input.prototype._keyCodeToBitCode = function(keyCode) {
+    var flag;
+    switch(keyCode) {
+        case 16: // Shift
+            flag = Constant.BUTTON_SHIFT;
+            break;
+        case 32: // space
+            flag = Constant.BUTTON_SPACE;
+            break;
+        case 37: // left
+            flag = Constant.BUTTON_LEFT;
+            break;
+        case 38: // up
+            flag = Constant.BUTTON_UP;
+            break;
+        case 39: // right
+            flag = Constant.BUTTON_RIGHT;
+            break;
+        case 40: // down
+            flag = Constant.BUTTON_DOWN;
+            break;
+        case 88: // x
+            flag = Constant.BUTTON_X;
+            break;
+        case 90: // z
+            flag = Constant.BUTTON_Z;
+            break;
+    }
+    return flag;
+};
+
+Input.prototype.bindKey = function() {
+    var self = this;
+    window.onkeydown = function(e) {
+        self.handleKeyDown(e);
+    };
+    window.onkeyup = function(e) {
+        self.handleKeyUp(e);
+    };
+};
+
+Input.prototype.saveBeforeKey = function() {
+    this.before_keyflag = this.keyflag;
+    this.keyflag = 0x0;
+};
+module.exports = Input;
+
+},{"./constant":2}],5:[function(require,module,exports){
 var Game = require('./game');
 var mainCanvas = document.getElementById('mainCanvas');
 var game = new Game(mainCanvas);
 game.startRun();
 
-},{"./game":2}],4:[function(require,module,exports){
+},{"./game":3}],6:[function(require,module,exports){
 var Chara = function(scene) {
     this.scene = scene;
     this.game = scene.game;
@@ -202,7 +320,7 @@ Chara.prototype.spriteHeight = function() {
 };
 module.exports = Chara;
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var Chara = require('../object/chara');
 var StageScene = function(game) {
     this.game = game;
@@ -245,4 +363,4 @@ StageScene.prototype.drawObjects = function() {
 }
 module.exports = StageScene;
 
-},{"../object/chara":4}]},{},[3]);
+},{"../object/chara":6}]},{},[5]);
