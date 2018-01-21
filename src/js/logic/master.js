@@ -3,7 +3,7 @@ var Master = function(scene) {
     this.scene = scene;
 
     this.frame_count = 0;
-    this.scene.addObject(new Enemy(this.scene, 100, 100));
+    //this.scene.addObject(new Enemy(this.scene, 100, 100));
 };
 
 Master.prototype.update = function () {

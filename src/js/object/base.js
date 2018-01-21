@@ -64,6 +64,34 @@ ObjectBase.prototype.setAimTo = function (x, y) {
     return theta;
 };
 
+ObjectBase.prototype.collisionRadius = function() {
+    return 0;
+};
+
+ObjectBase.prototype.checkCollisionByCircle = function(obj) {
+    // x^2 + y^2 = (r1 + r2)^2
+    if((this.x - obj.x)**2 + (this.y - obj.y)**2 <= (this.collisionRadius() + obj.collisionRadius())**2) {
+        return true;
+    }
+    return false;
+};
+
+ObjectBase.prototype.collisionWidth = function() {
+    return 0;
+};
+
+ObjectBase.prototype.collisionHeight = function() {
+    return 0;
+};
+
+ObjectBase.prototype.checkCollisionByRect = function(obj) {
+    if(Math.abs(this.x - obj.x) < this.collisionWidth()/2 + obj.collisionWidth()/2 &&
+       Math.abs(this.y - obj.y) < this.collisionHeight()/2 + obj.collisionHeight()/2) {
+        return true;
+    }
+    return false;
+};
+
 // 描画
 ObjectBase.prototype.draw = function() {
     var image = this.game.image_loader.getImage(this.spriteName());

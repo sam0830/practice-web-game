@@ -4,7 +4,7 @@ var Constant = require('../constant');
 var Shot = require('./shot');
 
 // キャラの移動速度
-var SPEED = 2;
+var SPEED = 7;
 
 // ショットの移動速度
 var SHOT_SPEED = 3;
@@ -17,20 +17,31 @@ Util.inherit(Chara, ObjectBase);
 
 Chara.prototype.update = function() {
     ObjectBase.prototype.update.apply(this, arguments); // 親クラスの update を実行
-
+    var xMove = this.x;
+    var yMove = this.y;
+    this.speed = 0;
     // 自機移動
     if(this.game.input.isKeyDown(Constant.BUTTON_LEFT)) {
-        this.x -= SPEED;
+        // this.x -= SPEED;
+        xMove -= SPEED;
+        this.speed = SPEED;
     }
     if(this.game.input.isKeyDown(Constant.BUTTON_RIGHT)) {
-        this.x += SPEED;
+        // this.x += SPEED;
+        xMove += SPEED;
+        this.speed = SPEED;
     }
     if(this.game.input.isKeyDown(Constant.BUTTON_DOWN)) {
-        this.y += SPEED;
+        // this.y += SPEED;
+        yMove += SPEED;
+        this.speed = SPEED;
     }
     if(this.game.input.isKeyDown(Constant.BUTTON_UP)) {
-        this.y -= SPEED;
+        yMove -= SPEED;
+        this.speed = SPEED;
     }
+
+    this.theta = this.setAimTo(xMove, yMove);
     // 画面外に出させない
     this.forbidOutOfStage();
     // Zが押されていればショット生成

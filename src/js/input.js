@@ -90,6 +90,5 @@ Input.prototype.bindKey = function() {
 
 Input.prototype.saveBeforeKey = function() {
     this.before_keyflag = this.keyflag;
-    this.keyflag = 0x0;
 };
 module.exports = Input;
