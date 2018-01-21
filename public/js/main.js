@@ -45,8 +45,8 @@ var Constant = {
     BUTTON_SPACE: 0x02, // 0b00000010
     BUTTON_LEFT: 0x04,  // 0b00000100
     BUTTON_UP: 0x08,    // 0b00001000
-    BUTTON_RIGHT: 0x10, // 0b00010000
-    BUTTON_DOWN: 0x20,  // 0b00100000
+    BUTTON_RIGHT: 0x10, // 0b00010000 16
+    BUTTON_DOWN: 0x20,  // 0b00100000 32
     BUTTON_Z: 0x40,     // 0b01000000
     BUTTON_X: 0x80      // 0b10000000
 };
@@ -220,7 +220,6 @@ Input.prototype.bindKey = function() {
 
 Input.prototype.saveBeforeKey = function() {
     this.before_keyflag = this.keyflag;
-    this.keyflag = 0x0;
 };
 module.exports = Input;
 
@@ -230,7 +229,7 @@ var Master = function(scene) {
     this.scene = scene;
 
     this.frame_count = 0;
-    this.scene.addObject(new Enemy(this.scene, 100, 100));
+    //this.scene.addObject(new Enemy(this.scene, 100, 100));
 };
 
 Master.prototype.update = function () {
@@ -317,6 +316,34 @@ ObjectBase.prototype.setAimTo = function (x, y) {
     return theta;
 };
 
+ObjectBase.prototype.collisionRadius = function() {
+    return 0;
+};
+
+ObjectBase.prototype.checkCollisionByCircle = function(obj) {
+    // x^2 + y^2 = (r1 + r2)^2
+    if((this.x - obj.x)**2 + (this.y - obj.y)**2 <= (this.collisionRadius() + obj.collisionRadius())**2) {
+        return true;
+    }
+    return false;
+};
+
+ObjectBase.prototype.collisionWidth = function() {
+    return 0;
+};
+
+ObjectBase.prototype.collisionHeight = function() {
+    return 0;
+};
+
+ObjectBase.prototype.checkCollisionByRect = function(obj) {
+    if(Math.abs(this.x - obj.x) < this.collisionWidth()/2 + obj.collisionWidth()/2 &&
+       Math.abs(this.y - obj.y) < this.collisionHeight()/2 + obj.collisionHeight()/2) {
+        return true;
+    }
+    return false;
+};
+
 // 描画
 ObjectBase.prototype.draw = function() {
     var image = this.game.image_loader.getImage(this.spriteName());
@@ -381,7 +408,7 @@ var Constant = require('../constant');
 var Shot = require('./shot');
 
 // キャラの移動速度
-var SPEED = 2;
+var SPEED = 7;
 
 // ショットの移動速度
 var SHOT_SPEED = 3;
@@ -394,20 +421,31 @@ Util.inherit(Chara, ObjectBase);
 
 Chara.prototype.update = function() {
     ObjectBase.prototype.update.apply(this, arguments); // 親クラスの update を実行
-
+    var xMove = this.x;
+    var yMove = this.y;
+    this.speed = 0;
     // 自機移動
     if(this.game.input.isKeyDown(Constant.BUTTON_LEFT)) {
-        this.x -= SPEED;
+        // this.x -= SPEED;
+        xMove -= SPEED;
+        this.speed = SPEED;
     }
     if(this.game.input.isKeyDown(Constant.BUTTON_RIGHT)) {
-        this.x += SPEED;
+        // this.x += SPEED;
+        xMove += SPEED;
+        this.speed = SPEED;
     }
     if(this.game.input.isKeyDown(Constant.BUTTON_DOWN)) {
-        this.y += SPEED;
+        // this.y += SPEED;
+        yMove += SPEED;
+        this.speed = SPEED;
     }
     if(this.game.input.isKeyDown(Constant.BUTTON_UP)) {
-        this.y -= SPEED;
+        yMove -= SPEED;
+        this.speed = SPEED;
     }
+
+    this.theta = this.setAimTo(xMove, yMove);
     // 画面外に出させない
     this.forbidOutOfStage();
     // Zが押されていればショット生成
