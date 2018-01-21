@@ -64,6 +64,18 @@ ObjectBase.prototype.setAimTo = function (x, y) {
     return theta;
 };
 
+ObjectBase.prototype.collisionRadius = function() {
+    return 0;
+};
+
+ObjectBase.prototype.checkCollisionByCircle = function(obj) {
+    // x^2 + y^2 = (r1 + r2)^2
+    if((this.x - obj.x)**2 + (this.y - obj.y)**2 <= (this.collisionRadius() + obj.collisionRadius())**2) {
+        return true;
+    }
+    return false;
+};
+
 // 描画
 ObjectBase.prototype.draw = function() {
     var image = this.game.image_loader.getImage(this.spriteName());
